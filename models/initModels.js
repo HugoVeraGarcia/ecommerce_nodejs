@@ -28,7 +28,7 @@ const initModels = () => {
   Product.hasOne(ProductInCart);
   ProductInCart.belongsTo(Product);
 
-  // one Category <---> many product  //it's what I think
+  // one Category <---> many product
   Category.hasMany(Product);
   Product.belongsTo(Category);
 

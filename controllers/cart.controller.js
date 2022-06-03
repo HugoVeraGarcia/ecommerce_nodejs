@@ -26,6 +26,8 @@ const addProduct = catchAsync(async (req, res, next) => {
   const { productId, quantity } = req.body;
   const { sessionUser } = req;
 
+  let idCart;
+
   //VALIDATE STOCK
   const product = await Product.findOne({
     where: { id: productId, status: 'active' },
@@ -42,44 +44,53 @@ const addProduct = catchAsync(async (req, res, next) => {
   }
 
   //FIND CART
-  const cart = await Cart.findOne({ userId: 1, status: 'active' });
+  const cart = await Cart.findOne({ userId: sessionUser.id, status: 'active' });
 
   if (!cart) {
     //create Cart
     const newCart = await Cart.create({ userId: sessionUser.id });
+    idCart = newCart.id;
+  } else {
+    idCart = cart.id;
   }
 
-  if (cart.status === 'removed') {
-    //create Cart
-    await cart.update({ status: 'active' });
+  //FIND CART
+  const cartSecondFind = await Cart.findOne({
+    userId: sessionUser.id,
+    status: 'active',
+  });
+
+  if (cartSecondFind.status === 'removed') {
+    //update Cart
+    await cartSecondFind.update({ status: 'active' });
+    idCart = cartSecondFind.id;
   }
 
   //FIND PRODUCTINCART
   const productInCart = await ProductInCart.findOne({
-    where: { cartId: cart.id, productId },
+    where: { cartId: idCart, productId },
   });
   //doesnt exist
   if (!productInCart) {
     //add product
     const newProductInCart = await ProductInCart.create({
-      cartId: cart.id,
+      cartId: idCart,
       productId,
       quantity,
     });
+  } else {
+    //exists but removed
+    if (productInCart.status === 'removed') {
+      //update status
+      await productInCart.update({ status: 'active', quantity });
+    }
+    //VALIDATE PRODUCT DOES NOT EXIST IN PRODUCTINCART
+    if (productInCart.status === 'active') {
+      return next(new AppError('You cannot add this product again', 400));
+    }
   }
-  //exists but removed
-  if (productInCart.status === 'removed') {
-    //update status
-    await productInCart.update({ status: 'active', quantity });
-  }
-  //VALIDATE PRODUCT DOES NOT EXIST IN PRODUCTINCART
-  if (productInCart.status === 'active') {
-    return next(new AppError('You cannot add this product again', 400));
-  }
-
   res.status(200).json({
     productInCart,
-    cart,
   });
 });
 

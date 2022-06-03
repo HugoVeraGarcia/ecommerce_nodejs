@@ -18,8 +18,6 @@ const router = express.Router();
 
 // Apply protectToken middleware
 router.use(protectToken);
-//newcart
-router.post('/newcart', addCart);
 
 router.post('/add-product', addProduct);
 

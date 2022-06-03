@@ -48,7 +48,7 @@ const createCategory = catchAsync(async (req, res, next) => {
 });
 
 const getAllCategory = catchAsync(async (req, res, next) => {
-  const category = await Category.findAll({ where: { status: 'active' } });
+  const category = await Category.findAll();
   res.status(201).json({ category });
 });
 

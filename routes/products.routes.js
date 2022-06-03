@@ -29,6 +29,8 @@ const {
 //router declaration
 const router = express.Router();
 
+router.get('/category', getAllCategory);
+
 router.get('/', getAllProducts);
 
 router.get('/:id', productExist, getProductById);
@@ -39,8 +41,8 @@ router.use(protectToken);
 router.post('/', createProductValidations, checkValidations, createProduct);
 
 //category
-router.post('/category', createCategory);
 router.get('/category', getAllCategory);
+router.post('/category', createCategory);
 router.delete('/category/:id', categoryExist, deleteCategory);
 router.patch('/category/:id', categoryExist, updateCategory);
 
